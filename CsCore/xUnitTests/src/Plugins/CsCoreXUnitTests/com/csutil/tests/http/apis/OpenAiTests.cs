@@ -16,7 +16,7 @@ namespace com.csutil.integrationTests.http {
         [Obsolete("The .Complete API is deprecated, use .ChatGpt(..) instead")]
         [Fact]
         public async Task ExampleUsage1_TextCompletion() {
-            var openAi = new OpenAi("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");
+            var openAi = new OpenAi(await IoC.inject.GetAppSecrets().GetSecret("OpenAiKey"));
             var prompt = "Complete this sentence with a funny short story: A cow walked ";
             var result = await openAi.Complete(prompt);
             var completion = result.choices.Single().text;
@@ -26,7 +26,7 @@ namespace com.csutil.integrationTests.http {
 
         //[Fact]
         public async Task ExampleUsage2_ImageGeneration() {
-            var openAi = new OpenAi("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");
+            var openAi = new OpenAi(await IoC.inject.GetAppSecrets().GetSecret("OpenAiKey"));
             var prompt = "A cute cat with a cowboy hat in cartoon style";
             var result = await openAi.TextToImage(new OpenAi.Image.Request() { prompt = prompt });
             Assert.NotEmpty(result.data);
@@ -37,7 +37,7 @@ namespace com.csutil.integrationTests.http {
 
         //[Fact]
         public async Task ExampleUsage2_ImageGeneration2() {
-            var openAi = new OpenAi("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");
+            var openAi = new OpenAi(await IoC.inject.GetAppSecrets().GetSecret("OpenAiKey"));
             var prompt = "A cute cat with a cowboy hat";
             var result = await openAi.TextToImage(new OpenAi.Image.Request() {
                 prompt = prompt,
@@ -53,7 +53,7 @@ namespace com.csutil.integrationTests.http {
 
         [Fact]
         public async Task ExampleUsage3_ChatGpt() {
-            var openAi = new OpenAi("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");
+            var openAi = new OpenAi(await IoC.inject.GetAppSecrets().GetSecret("OpenAiKey"));
             var messages = new List<ChatGpt.Line>() {
                 new ChatGpt.Line(ChatGpt.Role.system, content: "You are a standup comedian. You are on stage and about to tell a joke."),
                 new ChatGpt.Line(ChatGpt.Role.user, content: "Do you know the joke about the chicken that crossed the road?"),
@@ -68,10 +68,10 @@ namespace com.csutil.integrationTests.http {
             messages.Add(newLine);
             Log.d("response.content=" + JsonWriter.AsPrettyString(messages));
         }
-        
+
         [Fact]
         public async Task ExampleUsage4_ChatGpt4() {
-            var openAi = new OpenAi("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");
+            var openAi = new OpenAi(await IoC.inject.GetAppSecrets().GetSecret("OpenAiKey"));
             var messages = new List<ChatGpt.Line>() {
                 new ChatGpt.Line(ChatGpt.Role.system, content: "You are a standup comedian. You are on stage and about to tell a joke."),
                 new ChatGpt.Line(ChatGpt.Role.user, content: "Do you know the joke about the chicken that crossed the road?"),
@@ -93,7 +93,7 @@ namespace com.csutil.integrationTests.http {
         [Fact]
         public async Task ExampleUsage4_ChatGptJsonResponses() {
 
-            var openAi = new OpenAi("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");
+            var openAi = new OpenAi(await IoC.inject.GetAppSecrets().GetSecret("OpenAiKey"));
             var messages = new List<ChatGpt.Line>();
             messages.Add(new ChatGpt.Line(ChatGpt.Role.system, content: "You are a helpful assistant designed to output JSON."));
 
@@ -145,7 +145,7 @@ namespace com.csutil.integrationTests.http {
             // Show the entire conversation to make it clear how the responses look as strings:
             Log.d("messages=" + JsonWriter.AsPrettyString(messages));
         }
-        
+
         private static async Task<EmotionalChatResponse> TalkToEmotionalAi(OpenAi openAi, List<ChatGpt.Line> messages, string userInput) {
             using var timing = Log.MethodEnteredWith(userInput);
             EmotionalChatResponse emotionalResponseFormat = new EmotionalChatResponse() {
@@ -198,59 +198,6 @@ namespace com.csutil.integrationTests.http {
             public string aiAnswer { get; set; }
 
         }
-
-        //CUSTOM TEST
-        [Fact]
-        public static async Task TaskOne()
-        {
-            var openAi = new OpenAi("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");
-
-            var messagesAgentIsItAnimal = new List<ChatGpt.Line>();
-            messagesAgentIsItAnimal.Add(new ChatGpt.Line(ChatGpt.Role.system, content: "You are a helpful assistant designed to output JSON."));
-
-            var messagesAgentNameAnimal = new List<ChatGpt.Line>();
-            messagesAgentNameAnimal.Add(new ChatGpt.Line(ChatGpt.Role.system, content: "You are a helpful assistant designed to output JSON."));
-            messagesAgentNameAnimal.Add(new ChatGpt.Line(ChatGpt.Role.user, content: "Name an Animal"));
-
-            { // The user inputs a question but the response should be automatically parsable as a YesNoResponse:
-
-                // Create an example object so that the AI knows how the response json should look like for user inputs:
-                var yesNoResponseFormat = new YesNoResponse()
-                {
-                    confidence = 100,
-                    inputQuestionInterpreted = "Is the sky blue?",
-                    yesNoAnswer = true,
-                    explanation = "The sky is blue because of the way the atmosphere interacts with sunlight."
-                };
-
-                var responseAgent2 = await openAi.ChatGpt(NewGpt4JsonRequestWithFullConversation(messagesAgentNameAnimal));
-                ChatGpt.Line newLinePotentialAnimal = responseAgent2.choices.Single().message;
-                messagesAgentIsItAnimal.Add(newLinePotentialAnimal);
-
-                messagesAgentIsItAnimal.AddUserLineWithJsonResultStructure("Is the input an animal?", yesNoResponseFormat);
-
-                // Send the messages to the AI and get the response:
-                var response = await openAi.ChatGpt(NewGpt4JsonRequestWithFullConversation(messagesAgentIsItAnimal));
-                ChatGpt.Line newLine = response.choices.Single().message;
-                messagesAgentIsItAnimal.Add(newLine);
-
-                // Parse newLine.content as a YesNoResponse:
-                var yesNoResponse = newLine.ParseNewLineContentAsJson<YesNoResponse>();
-
-                // Dogs can look up, lets hope the AI knows that too:
-                Assert.True(yesNoResponse.yesNoAnswer);
-                // Since the input question is very short the interpretation will be the same string:
-                //Assert.Equal("Is the input an animal?", yesNoResponse.inputQuestionInterpreted);
-                // The AI is very confident in its answer:
-                Assert.True(yesNoResponse.confidence > 50);
-                // The AI also explains why it gave the answer:
-                Assert.NotEmpty(yesNoResponse.explanation);
-
-            }
-
-            Log.d("messages=" + JsonWriter.AsPrettyString(messagesAgentIsItAnimal));
-        }
-
 
     }
 
