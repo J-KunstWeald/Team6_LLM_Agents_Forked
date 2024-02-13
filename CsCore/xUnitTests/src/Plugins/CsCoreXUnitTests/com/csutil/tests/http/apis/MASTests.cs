@@ -13,10 +13,7 @@ using static com.csutil.integrationTests.http.OpenAiTests; //needed for YesNoRes
 
 namespace com.csutil.integrationTests.http
 {
-    public class ChatGptTests
-    {
-        private static string OpenAiKey = "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";
-
+    public class ChatGptTests {
         public ChatGptTests(Xunit.Abstractions.ITestOutputHelper logger) { logger.UseAsLoggingOutput(); }
 
         private static ChatGpt.Request NewGpt4JsonRequestWithFullConversation(List<ChatGpt.Line> conversationSoFar)
@@ -30,7 +27,7 @@ namespace com.csutil.integrationTests.http
 
         [Fact]
         public static async Task TaskOne() {
-            var openAi = new OpenAi(OpenAiKey);
+            var openAi = new OpenAi(await IoC.inject.GetAppSecrets().GetSecret("OpenAiKey"));
             
             var messagesAgentIsItAnimal = new List<ChatGpt.Line>();
             messagesAgentIsItAnimal.Add(new ChatGpt.Line(ChatGpt.Role.system, content: "You are a helpful assistant designed to output JSON."));
