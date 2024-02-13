@@ -11,15 +11,11 @@ using com.csutil.io;
 using com.csutil;
 using static com.csutil.integrationTests.http.OpenAiTests; //needed for YesNoResponse Class
 
-namespace Team6_LLM_Agents
+namespace com.csutil.integrationTests.http
 {
-    static class ApiKey
-    {
-        public static string key = "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";
-    }
-
     public class ChatGptTests
     {
+        private static string OpenAiKey = "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";
 
         public ChatGptTests(Xunit.Abstractions.ITestOutputHelper logger) { logger.UseAsLoggingOutput(); }
 
@@ -33,9 +29,8 @@ namespace Team6_LLM_Agents
         }
 
         [Fact]
-        public static async Task TaskOne()
-        {
-            var openAi = new OpenAi("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");
+        public static async Task TaskOne() {
+            var openAi = new OpenAi(OpenAiKey);
             
             var messagesAgentIsItAnimal = new List<ChatGpt.Line>();
             messagesAgentIsItAnimal.Add(new ChatGpt.Line(ChatGpt.Role.system, content: "You are a helpful assistant designed to output JSON."));
