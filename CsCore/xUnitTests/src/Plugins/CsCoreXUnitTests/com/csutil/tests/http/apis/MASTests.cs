@@ -13,8 +13,8 @@ using static com.csutil.integrationTests.http.OpenAiTests; //needed for YesNoRes
 
 namespace com.csutil.integrationTests.http
 {
-    public class ChatGptTests {
-        public ChatGptTests(Xunit.Abstractions.ITestOutputHelper logger) { logger.UseAsLoggingOutput(); }
+    public class MASTests {
+        public MASTests(Xunit.Abstractions.ITestOutputHelper logger) { logger.UseAsLoggingOutput(); }
 
         private static ChatGpt.Request NewGpt4JsonRequestWithFullConversation(List<ChatGpt.Line> conversationSoFar)
         {
