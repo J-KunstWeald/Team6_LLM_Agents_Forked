@@ -7,71 +7,7 @@ namespace com.csutil.http.apis {
     public abstract class LLMAgent {
         public abstract void FeedUserMessage(string message);
 
-        public class TextResponse {
-            public string promptSummary { get; set; }
-            public string response { get; set; }
-        }
-
-        public Task<TextResponse> GenerateTextResponse(params TextResponse[] exampleResponses) {
-            if (exampleResponses.IsEmpty()) {
-                var exampleResponse = new TextResponse() {
-                    promptSummary = "Am I sentient?",
-                    response = "I am not."
-                };
-
-                return GenerateResponse(exampleResponse);
-            } else {
-                return GenerateResponse(exampleResponses);
-            }
-        }
-
-        public class YesNoResponse {
-            public string promptSummary { get; set; }
-            public string explanation { get; set; }
-            public int confidenceInAnswer { get; set; }
-            public bool answer { get; set; }
-        }
-
-        public Task<YesNoResponse> GenerateYesNoResponse(params YesNoResponse[] exampleResponses) {
-            if (exampleResponses.IsEmpty()) {
-                var positiveExample = new YesNoResponse() {
-                    promptSummary = "Are humans a type of animal?",
-                    explanation = "Humans belong to the animal species Homo Sapiens, however in colloquial language the term animal is often used to designate nonhuman animals.",
-                    confidenceInAnswer = 90,
-                    answer = true
-                };
-                var negativeExample = new YesNoResponse() {
-                    promptSummary = "Are plants a type of animal?",
-                    explanation = "Animals and plants both belong to the domain of eukaryotes, however they constitute two different kingdoms, namely Animalia and Plantae, within it.",
-                    confidenceInAnswer = 100,
-                    answer = false
-                };
-
-                return GenerateResponse(positiveExample, negativeExample);
-            } else {
-                return GenerateResponse(exampleResponses);
-            }
-        }
-        
-        public class NumericResponse {
-            public string promptSummary { get; set; }
-            public double number { get; set; }
-        }
-
-        public Task<NumericResponse> GenerateNumericResponse(params NumericResponse[] exampleResponses) {
-            if (exampleResponses.IsEmpty()) {
-                var exampleResponse = new NumericResponse() {
-                    promptSummary = "2*2",
-                    number = 4.0
-                };
-
-                return GenerateResponse(exampleResponse);
-            } else {
-                return GenerateResponse(exampleResponses);
-            }
-        }
-        
-        protected abstract Task<T> GenerateResponse<T>(params T[] responseExamples);
+        public abstract Task<T> GenerateResponse<T>(params T[] responseExamples);
 
         public class ChatGpt : LLMAgent {
             private OpenAi api;
@@ -89,7 +25,7 @@ namespace com.csutil.http.apis {
                 messages.Add(new apis.ChatGpt.Line(apis.ChatGpt.Role.user, content: message));
             }
 
-            protected override async Task<T> GenerateResponse<T>(params T[] responseExamples) {
+            public override async Task<T> GenerateResponse<T>(params T[] responseExamples) {
                 messages.Add(new apis.ChatGpt.Line(apis.ChatGpt.Role.system, content: apis.ChatGptExtensions.CreateJsonInstructions(responseExamples)));
                 
                 var request = new apis.ChatGpt.Request(messages);
@@ -102,6 +38,72 @@ namespace com.csutil.http.apis {
                 
                 messages.Add(line);
                 return JsonReader.GetReader().Read<T>(line.content);
+            }
+        }
+    }
+
+    public static class LLMAgentExtensions {
+        public class TextResponse {
+            public string promptSummary { get; set; }
+            public string response { get; set; }
+        }
+
+        public static Task<TextResponse> GenerateTextResponse(this LLMAgent agent, params TextResponse[] exampleResponses) {
+            if (exampleResponses.IsEmpty()) {
+                var exampleResponse = new TextResponse() {
+                    promptSummary = "Am I sentient?",
+                    response = "I am not."
+                };
+
+                return agent.GenerateResponse(exampleResponse);
+            } else {
+                return agent.GenerateResponse(exampleResponses);
+            }
+        }
+
+        public class YesNoResponse {
+            public string promptSummary { get; set; }
+            public string explanation { get; set; }
+            public int confidenceInAnswer { get; set; }
+            public bool answer { get; set; }
+        }
+
+        public static Task<YesNoResponse> GenerateYesNoResponse(this LLMAgent agent, params YesNoResponse[] exampleResponses) {
+            if (exampleResponses.IsEmpty()) {
+                var positiveExample = new YesNoResponse() {
+                    promptSummary = "Are humans a type of animal?",
+                    explanation = "Humans belong to the animal species Homo Sapiens, however in colloquial language the term animal is often used to designate nonhuman animals.",
+                    confidenceInAnswer = 90,
+                    answer = true
+                };
+                var negativeExample = new YesNoResponse() {
+                    promptSummary = "Are plants a type of animal?",
+                    explanation = "Animals and plants both belong to the domain of eukaryotes, however they constitute two different kingdoms, namely Animalia and Plantae, within it.",
+                    confidenceInAnswer = 100,
+                    answer = false
+                };
+
+                return agent.GenerateResponse(positiveExample, negativeExample);
+            } else {
+                return agent.GenerateResponse(exampleResponses);
+            }
+        }
+        
+        public class NumericResponse {
+            public string promptSummary { get; set; }
+            public double number { get; set; }
+        }
+
+        public static Task<NumericResponse> GenerateNumericResponse(this LLMAgent agent, params NumericResponse[] exampleResponses) {
+            if (exampleResponses.IsEmpty()) {
+                var exampleResponse = new NumericResponse() {
+                    promptSummary = "2*2",
+                    number = 4.0
+                };
+
+                return agent.GenerateResponse(exampleResponse);
+            } else {
+                return agent.GenerateResponse(exampleResponses);
             }
         }
     }
