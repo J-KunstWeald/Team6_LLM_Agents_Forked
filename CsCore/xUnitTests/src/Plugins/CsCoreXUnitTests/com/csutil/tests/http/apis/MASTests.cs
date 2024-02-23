@@ -23,6 +23,8 @@ namespace com.csutil.integrationTests.http
                 x = response.number;
             }
             
+            Assert.Equal(2.0, x);
+            
             bool judgement;
             int confidence;
 
