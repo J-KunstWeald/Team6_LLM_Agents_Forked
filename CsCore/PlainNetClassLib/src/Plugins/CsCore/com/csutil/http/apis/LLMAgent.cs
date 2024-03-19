@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using com.csutil.http.apis;
@@ -9,6 +10,8 @@ namespace com.csutil.http.apis {
 
         public abstract Task<T> GenerateResponse<T>(params T[] responseExamples);
 
+        public abstract void ForgetConversation();
+        
         public class ChatGpt : LLMAgent {
             private OpenAi api;
             private string model;
@@ -36,8 +39,14 @@ namespace com.csutil.http.apis {
                 var response = await api.ChatGpt(request);
                 var line = response.choices.Single().message;
                 
+                // removing the json instructions is necessary to not blow up the context window
+                messages.RemoveAt(messages.Count - 1);
                 messages.Add(line);
                 return JsonReader.GetReader().Read<T>(line.content);
+            }
+
+            public override void ForgetConversation() {
+                messages.RemoveRange(1, messages.Count - 1);
             }
         }
     }
